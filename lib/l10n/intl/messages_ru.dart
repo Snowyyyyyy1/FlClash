@@ -390,10 +390,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoCloseConnections": MessageLookupByLibrary.simpleMessage(
       "Автозакрытие соединений",
     ),
+    "autoDownloadUpdate": MessageLookupByLibrary.simpleMessage(
+      "Автоматически загружать обновления",
+    ),
     "autoInclude": MessageLookupByLibrary.simpleMessage(
       "Автоматическое включение",
     ),
     "autoLaunch": MessageLookupByLibrary.simpleMessage("Автозапуск"),
+    "autoRestartUpdate": MessageLookupByLibrary.simpleMessage(
+      "Перезапускать для обновления в простое",
+    ),
     "autoRun": MessageLookupByLibrary.simpleMessage("Автовключение"),
     "autoRunDesc": MessageLookupByLibrary.simpleMessage(
       "Автовключение запускает прокси при открытии приложения.",

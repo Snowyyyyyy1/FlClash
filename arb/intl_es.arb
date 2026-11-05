@@ -59,6 +59,8 @@
   "logcat": "Logcat",
   "logcatDesc": "Si desactivas Logcat, se oculta la entrada de registros.",
   "autoCheckUpdate": "Buscar actualizaciones automáticamente",
+  "autoDownloadUpdate": "Descargar actualizaciones automáticamente",
+  "autoRestartUpdate": "Reiniciar para actualizar cuando esté inactivo",
   "checkCertificate": "Verificar certificados TLS",
   "checkCertificateDesc": "Con la verificación TLS desactivada, las suscripciones y las copias de seguridad quedan expuestas a ataques de intermediario.",
   "accessControl": "Control de acceso",

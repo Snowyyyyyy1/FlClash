@@ -401,10 +401,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoCloseConnections": MessageLookupByLibrary.simpleMessage(
       "Fermer les connexions automatiquement",
     ),
+    "autoDownloadUpdate": MessageLookupByLibrary.simpleMessage(
+      "Télécharger automatiquement les mises à jour",
+    ),
     "autoInclude": MessageLookupByLibrary.simpleMessage(
       "Inclure automatiquement",
     ),
     "autoLaunch": MessageLookupByLibrary.simpleMessage("Lancement automatique"),
+    "autoRestartUpdate": MessageLookupByLibrary.simpleMessage(
+      "Redémarrer pour mettre à jour en cas d\'inactivité",
+    ),
     "autoRun": MessageLookupByLibrary.simpleMessage("Démarrage automatique"),
     "autoRunDesc": MessageLookupByLibrary.simpleMessage(
       "Le démarrage automatique active le proxy à l’ouverture de l’app.",

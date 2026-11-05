@@ -399,10 +399,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "autoCloseConnections": MessageLookupByLibrary.simpleMessage(
       "Cerrar conexiones automáticamente",
     ),
+    "autoDownloadUpdate": MessageLookupByLibrary.simpleMessage(
+      "Descargar actualizaciones automáticamente",
+    ),
     "autoInclude": MessageLookupByLibrary.simpleMessage(
       "Incluir automáticamente",
     ),
     "autoLaunch": MessageLookupByLibrary.simpleMessage("Inicio automático"),
+    "autoRestartUpdate": MessageLookupByLibrary.simpleMessage(
+      "Reiniciar para actualizar cuando esté inactivo",
+    ),
     "autoRun": MessageLookupByLibrary.simpleMessage("Ejecución automática"),
     "autoRunDesc": MessageLookupByLibrary.simpleMessage(
       "La ejecución automática inicia el proxy al abrir la app.",

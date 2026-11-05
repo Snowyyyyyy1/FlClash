@@ -327,8 +327,12 @@ class MessageLookup extends MessageLookupByLibrary {
     "auto": MessageLookupByLibrary.simpleMessage("자동"),
     "autoCheckUpdate": MessageLookupByLibrary.simpleMessage("업데이트 자동 확인"),
     "autoCloseConnections": MessageLookupByLibrary.simpleMessage("연결 자동 종료"),
+    "autoDownloadUpdate": MessageLookupByLibrary.simpleMessage("업데이트 자동 다운로드"),
     "autoInclude": MessageLookupByLibrary.simpleMessage("자동 포함"),
     "autoLaunch": MessageLookupByLibrary.simpleMessage("자동 실행"),
+    "autoRestartUpdate": MessageLookupByLibrary.simpleMessage(
+      "유휴 상태일 때 다시 시작하여 업데이트",
+    ),
     "autoRun": MessageLookupByLibrary.simpleMessage("자동 시작"),
     "autoRunDesc": MessageLookupByLibrary.simpleMessage(
       "자동 시작은 앱을 열 때 프록시를 시작합니다.",

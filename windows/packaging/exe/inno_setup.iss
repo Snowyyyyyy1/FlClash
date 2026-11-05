@@ -41,6 +41,12 @@ begin
   Result := UpdatingAppPid > 0;
 end;
 
+// An update installed when the app quits passes /norelaunch=1 and stays closed.
+function IsAppRelaunch: Boolean;
+begin
+  Result := IsAppUpdate and (ExpandConstant('{param:norelaunch|0}') <> '1');
+end;
+
 procedure WaitForUpdatingApp;
 var
   Handle: THandle;
@@ -213,4 +219,4 @@ Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
 [Run]
 Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait postinstall skipifsilent
-Filename: "{app}\\{{EXECUTABLE_NAME}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait; Check: IsAppUpdate
+Filename: "{app}\\{{EXECUTABLE_NAME}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait; Check: IsAppRelaunch

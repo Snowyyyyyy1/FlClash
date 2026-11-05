@@ -272,6 +272,50 @@ void main() {
       await tester.pump(const Duration(seconds: 10));
     });
 
+    testWidgets('an automatic check downloads without asking', (tester) async {
+      request.releaseDio.httpClientAdapter = _ReleaseAdapter(
+        sums: '$digest  ./$asset\n',
+        asset: () => ResponseBody.fromBytes(package, 200),
+      );
+
+      final container = await pumpApp(tester);
+      await container
+          .read(commonActionProvider.notifier)
+          .checkUpdateResultHandle(data: release(_bulletsOnly));
+      await tester.pump();
+
+      expect(find.widgetWithText(TextButton, 'Update'), findsNothing);
+      await settleUntil(
+        tester,
+        () => container.read(updateDownloadStateProvider) is UpdateReady,
+      );
+      expect(container.read(updateDownloadStateProvider), isA<UpdateReady>());
+
+      await tester.runAsync(
+        container.read(commonActionProvider.notifier).discardUpdate,
+      );
+      await tester.pump(const Duration(seconds: 10));
+    });
+
+    testWidgets('an automatic check asks first when auto download is off', (
+      tester,
+    ) async {
+      final container = await pumpApp(tester);
+      container
+          .read(appSettingProvider.notifier)
+          .update((state) => state.copyWith(autoDownloadUpdate: false));
+      final shown = container
+          .read(commonActionProvider.notifier)
+          .checkUpdateResultHandle(data: release(_bulletsOnly));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextButton, 'Update'), findsOneWidget);
+      expect(container.read(updateDownloadStateProvider), isNull);
+
+      await tapCancel(tester);
+      await shown;
+    });
+
     testWidgets('cancelling the download reports nothing', (tester) async {
       final partial = '${home.path}/update/$asset';
       final body = StreamController<Uint8List>();

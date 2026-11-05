@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/app_update.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -101,5 +102,52 @@ void main() {
 
     expect(arguments, containsAll(['/SILENT', '/SUPPRESSMSGBOXES']));
     expect(arguments, contains('/updatefrom=4242'));
+  });
+  test('windowsExitUpdateArguments keeps the app closed after installing', () {
+    final arguments = windowsExitUpdateArguments(4242).split(' ');
+
+    expect(arguments, contains('/updatefrom=4242'));
+    expect(arguments, contains('/norelaunch=1'));
+    expect(windowsUpdateArguments(4242), isNot(contains('/norelaunch')));
+  });
+
+  group('isUpdateIdle', () {
+    List<Traffic> quiet(int count, {num speed = 0}) =>
+        List.filled(count, Traffic(up: speed, down: 0));
+
+    test('needs a full window of samples', () {
+      expect(isUpdateIdle(quiet(updateIdleSamples - 1)), isFalse);
+      expect(isUpdateIdle(quiet(updateIdleSamples)), isTrue);
+    });
+
+    test('treats background chatter as idle', () {
+      expect(isUpdateIdle(quiet(30, speed: updateIdleSpeed - 1)), isTrue);
+    });
+
+    test('is busy when any recent sample is above the limit', () {
+      final traffics = [
+        ...quiet(20),
+        const Traffic(up: 50000),
+        ...quiet(updateIdleSamples - 1),
+      ];
+
+      expect(isUpdateIdle(traffics), isFalse);
+    });
+
+    test('ignores bursts older than the window', () {
+      final traffics = [
+        const Traffic(down: 50000),
+        ...quiet(updateIdleSamples),
+      ];
+
+      expect(isUpdateIdle(traffics), isTrue);
+    });
+  });
+
+  test('the updater checks the fork releases', () {
+    expect(
+      releaseAssetUri('v0.9.3', 'SHA256SUMS').toString(),
+      'https://github.com/Snowyyyyyy1/FlClash/releases/download/v0.9.3/SHA256SUMS',
+    );
   });
 }

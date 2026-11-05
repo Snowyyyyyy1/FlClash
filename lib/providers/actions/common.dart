@@ -5,6 +5,10 @@ class CommonAction extends _$CommonAction {
   CoreController get _core => ref.read(coreHandlerProvider);
   bool _isUpdatingTraffic = false;
   CancelToken? _updateCancelToken;
+  Timer? _idleInstallTimer;
+
+  /// The installer has been started, so the exit must not start it again.
+  bool _installStarted = false;
 
   @override
   void build() {}
@@ -151,6 +155,12 @@ class CommonAction extends _$CommonAction {
       final context = globalState.navigatorKey.currentContext!;
       final tag = data['tag_name'] as String;
       final suffix = selfUpdateSuffix;
+      if (!isUser &&
+          suffix != null &&
+          ref.read(appSettingProvider).autoDownloadUpdate) {
+        unawaited(_downloadUpdate(tag, releaseAssetName(tag, suffix)));
+        return;
+      }
       final res = await dialogs.showMessage(
         title: currentAppLocalizations.discoverNewVersion,
         message: _releaseSpan(context, tag, data['body'] as String?),
@@ -237,6 +247,9 @@ class CommonAction extends _$CommonAction {
         level: BannerLevel.success,
         onTap: () => unawaited(installUpdate()),
       );
+      if (system.isWindows && ref.read(appSettingProvider).autoRestartUpdate) {
+        _installWhenIdle();
+      }
     } catch (error) {
       download.value = null;
       await clearUpdateDownloads();
@@ -261,6 +274,39 @@ class CommonAction extends _$CommonAction {
     _updateCancelToken?.cancel();
   }
 
+  /// Installs once traffic has been quiet for a while, and gives up after
+  /// [updateIdleWaitMost]; the update then waits for the user or for the exit.
+  void _installWhenIdle() {
+    _idleInstallTimer?.cancel();
+    final deadline = DateTime.now().add(updateIdleWaitMost);
+    _idleInstallTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (ref.read(updateDownloadStateProvider) is! UpdateReady ||
+          DateTime.now().isAfter(deadline)) {
+        timer.cancel();
+        return;
+      }
+      if (isUpdateIdle(ref.read(trafficsProvider).list)) {
+        timer.cancel();
+        unawaited(installUpdate());
+      }
+    });
+  }
+
+  /// Runs the downloaded installer as the app quits, without relaunching, so
+  /// the next start is the new version.
+  Future<void> installUpdateOnExit() async {
+    final download = ref.read(updateDownloadStateProvider);
+    if (!system.isWindows || download is! UpdateReady || _installStarted) {
+      return;
+    }
+    _installStarted = true;
+    final started = windows?.runas(
+      download.path,
+      windowsExitUpdateArguments(pid),
+    );
+    if (started != true) _installStarted = false;
+  }
+
   Future<void> discardUpdate() async {
     if (ref.read(updateDownloadStateProvider) is! UpdateReady) return;
     ref.read(updateDownloadStateProvider.notifier).value = null;
@@ -279,7 +325,9 @@ class CommonAction extends _$CommonAction {
       }
       return;
     }
+    _idleInstallTimer?.cancel();
     final started = windows?.runas(download.path, windowsUpdateArguments(pid));
+    _installStarted = started == true;
     if (started == true) {
       await ref.read(systemActionProvider.notifier).handleExit();
     } else if (started == false) {

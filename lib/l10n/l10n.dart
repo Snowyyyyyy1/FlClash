@@ -485,6 +485,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Auto download updates`
+  String get autoDownloadUpdate {
+    return Intl.message(
+      'Auto download updates',
+      name: 'autoDownloadUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Restart to update when idle`
+  String get autoRestartUpdate {
+    return Intl.message(
+      'Restart to update when idle',
+      name: 'autoRestartUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Verify TLS certificates`
   String get checkCertificate {
     return Intl.message(

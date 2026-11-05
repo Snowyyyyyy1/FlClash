@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/models/models.dart' show Traffic, TrafficExt;
 import 'package:fl_clash/plugins/app.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show PlatformException;
@@ -108,4 +109,23 @@ bool get isInstalledWindowsBuild {
 // inno_setup.iss waits for `updatefrom` to exit, then relaunches the app.
 String windowsUpdateArguments(int pid) {
   return '/SILENT /SUPPRESSMSGBOXES /NORESTART /SP- /updatefrom=$pid';
+}
+
+// Installing as the app quits must not bring it back.
+String windowsExitUpdateArguments(int pid) {
+  return '${windowsUpdateArguments(pid)} /norelaunch=1';
+}
+
+const updateIdleSamples = 10;
+
+/// Background chatter, such as keep-alives, stays below this.
+const updateIdleSpeed = 4096;
+const updateIdleWaitMost = Duration(hours: 1);
+
+/// Whether the last [updateIdleSamples] traffic samples are all near zero.
+bool isUpdateIdle(List<Traffic> traffics) {
+  if (traffics.length < updateIdleSamples) return false;
+  return traffics
+      .skip(traffics.length - updateIdleSamples)
+      .every((traffic) => traffic.speed < updateIdleSpeed);
 }

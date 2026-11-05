@@ -353,6 +353,17 @@ class GeneralView extends ConsumerWidget {
         select: (state) => state.autoCheckUpdate,
         update: (state, value) => state.copyWith(autoCheckUpdate: value),
       ),
+      _appSettingToggle(
+        title: (l) => l.autoDownloadUpdate,
+        select: (state) => state.autoDownloadUpdate,
+        update: (state, value) => state.copyWith(autoDownloadUpdate: value),
+      ),
+      if (system.isWindows)
+        _appSettingToggle(
+          title: (l) => l.autoRestartUpdate,
+          select: (state) => state.autoRestartUpdate,
+          update: (state, value) => state.copyWith(autoRestartUpdate: value),
+        ),
     ];
   }
 
