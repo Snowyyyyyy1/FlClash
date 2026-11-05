@@ -191,6 +191,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get autoCheckUpdate => 'Автопроверка обновлений';
 
   @override
+  String get autoDownloadUpdate => 'Автоматически загружать обновления';
+
+  @override
+  String get autoRestartUpdate => 'Перезапускать для обновления в простое';
+
+  @override
   String get checkCertificate => 'Проверять TLS-сертификаты';
 
   @override

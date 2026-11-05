@@ -29,7 +29,10 @@ class SystemAction extends _$SystemAction {
     return await app?.requestInstalledAppsPermission() ?? false;
   }
 
-  Future<void> handleExit([bool needSave = true]) {
+  Future<void> handleExit([bool needSave = true]) async {
+    if (needSave) {
+      await ref.read(commonActionProvider.notifier).installUpdateOnExit();
+    }
     final coordinator = _exitCoordinator ??= SystemExitCoordinator(
       watchdogDuration: exitWatchdogDuration,
       closeWindow: closeWindow,

@@ -1,8 +1,13 @@
-name: windows
+name: release
 
-# Manual Windows build for this fork. It never publishes anything: the zip/exe
-# artifacts are attached to the run, and a release is created by hand.
+# Windows release for this fork. A manual run builds the installers and keeps
+# them as run artifacts; pushing a v* tag also publishes them. The app updates
+# itself from these assets, so the names must stay FlClash-<version>-windows-<arch>-setup.exe
+# next to a SHA256SUMS file (lib/common/app_update.dart).
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 env:
@@ -72,5 +77,33 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: FlClash-snell-windows-${{ matrix.arch }}
+          name: artifact-windows-${{ matrix.arch }}
           path: ./dist
+
+  publish:
+    name: Publish
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          merge-multiple: true
+
+      - name: Generate sha256
+        working-directory: ./artifacts
+        run: |
+          ls -l
+          # Keep only what the app downloads or a person picks by hand.
+          sha256sum FlClash-*-windows-*-setup.exe FlClash-*-windows-*.zip > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/*
+          generate_release_notes: true

@@ -189,6 +189,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get autoCheckUpdate => '更新の自動チェック';
 
   @override
+  String get autoDownloadUpdate => '更新を自動でダウンロード';
+
+  @override
+  String get autoRestartUpdate => 'アイドル時に再起動して更新';
+
+  @override
   String get checkCertificate => 'TLS証明書を検証';
 
   @override

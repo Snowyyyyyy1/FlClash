@@ -189,6 +189,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get autoCheckUpdate => '업데이트 자동 확인';
 
   @override
+  String get autoDownloadUpdate => '업데이트 자동 다운로드';
+
+  @override
+  String get autoRestartUpdate => '유휴 상태일 때 다시 시작하여 업데이트';
+
+  @override
   String get checkCertificate => 'TLS 인증서 검증';
 
   @override

@@ -189,6 +189,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get autoCheckUpdate => '自动检查更新';
 
   @override
+  String get autoDownloadUpdate => '自动下载更新';
+
+  @override
+  String get autoRestartUpdate => '空闲时自动重启并更新';
+
+  @override
   String get checkCertificate => '校验 TLS 证书';
 
   @override

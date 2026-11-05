@@ -59,6 +59,8 @@
   "logcat": "Logcat",
   "logcatDesc": "Turning off Logcat hides the logs entry.",
   "autoCheckUpdate": "Auto check for updates",
+  "autoDownloadUpdate": "Auto download updates",
+  "autoRestartUpdate": "Restart to update when idle",
   "checkCertificate": "Verify TLS certificates",
   "checkCertificateDesc": "With TLS verification off, subscriptions and backups are open to man-in-the-middle attacks.",
   "accessControl": "Access control",

@@ -59,6 +59,8 @@
   "logcat": "Logcat",
   "logcatDesc": "Logcat을 끄면 로그 항목이 숨겨집니다.",
   "autoCheckUpdate": "업데이트 자동 확인",
+  "autoDownloadUpdate": "업데이트 자동 다운로드",
+  "autoRestartUpdate": "유휴 상태일 때 다시 시작하여 업데이트",
   "checkCertificate": "TLS 인증서 검증",
   "checkCertificateDesc": "TLS 검증을 끄면 구독과 백업이 중간자 공격에 노출됩니다.",
   "accessControl": "접근 제어",

@@ -468,6 +468,18 @@ abstract class AppLocalizations {
   /// **'Auto check for updates'**
   String get autoCheckUpdate;
 
+  /// No description provided for @autoDownloadUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto download updates'**
+  String get autoDownloadUpdate;
+
+  /// No description provided for @autoRestartUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart to update when idle'**
+  String get autoRestartUpdate;
+
   /// No description provided for @checkCertificate.
   ///
   /// In en, this message translates to:

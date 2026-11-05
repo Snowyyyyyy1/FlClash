@@ -190,6 +190,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get autoCheckUpdate => 'Rechercher les mises à jour automatiquement';
 
   @override
+  String get autoDownloadUpdate =>
+      'Télécharger automatiquement les mises à jour';
+
+  @override
+  String get autoRestartUpdate =>
+      "Redémarrer pour mettre à jour en cas d'inactivité";
+
+  @override
   String get checkCertificate => 'Vérifier les certificats TLS';
 
   @override

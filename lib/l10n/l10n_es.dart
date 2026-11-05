@@ -191,6 +191,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get autoCheckUpdate => 'Buscar actualizaciones automáticamente';
 
   @override
+  String get autoDownloadUpdate => 'Descargar actualizaciones automáticamente';
+
+  @override
+  String get autoRestartUpdate =>
+      'Reiniciar para actualizar cuando esté inactivo';
+
+  @override
   String get checkCertificate => 'Verificar certificados TLS';
 
   @override
