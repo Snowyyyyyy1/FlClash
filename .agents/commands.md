@@ -382,7 +382,7 @@ the branches had saved. Release builds therefore start cold; branch runs keep th
   the file that drives their Core build to get an entry of their own.
 - setup-gradle writes only on the default branch. Its entries are keyed by job, which is one more reason the release
   build gains nothing from caching.
-- `desktop` caches the Flutter SDK on Linux only. On macOS and Windows a hit took as long as a fresh download (82 s
+- `desktop` caches the Flutter SDK on Linux only, and pub packages on its own elsewhere. On macOS and Windows a hit took as long as a fresh download (82 s
   against 79 s, 103 s against 113 s) and cost 3.9 GB of the 10 GB, which evicted the Linux and Go entries.
 
 ## Worktree Tooling
