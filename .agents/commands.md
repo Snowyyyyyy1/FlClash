@@ -477,16 +477,18 @@ no workflow edit.
 
 ### CI Caches
 
-A run restores only cache entries saved on its own branch or tag, or on the default branch (`main`), and the
-repository holds 10 GB before evicting the least recently used entries. Every release is a new tag that no later run
-reads from, so `BRANCH_CACHE` turns caching off in tag runs, whose entries would evict what `dev` saved. Release
-builds therefore start cold; branch runs, chiefly `dev`, keep the caches.
+A run restores only cache entries saved on its own branch or tag, or on the default branch, and the repository holds
+10 GB before evicting the least recently used entries. Every release is a new tag that no later run reads from, so
+`BRANCH_CACHE` turns caching off in tag runs: one release used to write about 9 GB of such entries and evict everything
+the branches had saved. Release builds therefore start cold; branch runs keep the caches.
 
 - setup-go keys its entry on the `cache-dependency-path` files alone and saves only on a miss, so jobs listing the
   same files share one entry holding the build cache of whichever finished first. `desktop` and `android` each add
   the file that drives their Core build to get an entry of their own.
-- setup-gradle writes only on the default branch unless told otherwise, so `android` lets `dev` write as well. Its
-  entries are keyed by job, which is one more reason the release build gains nothing from caching.
+- setup-gradle writes only on the default branch. Its entries are keyed by job, which is one more reason the release
+  build gains nothing from caching.
+- `desktop` caches the Flutter SDK on Linux only, and pub packages on its own elsewhere. On macOS and Windows a hit took as long as a fresh download (82 s
+  against 79 s, 103 s against 113 s) and cost 3.9 GB of the 10 GB, which evicted the Linux and Go entries.
 
 ## Worktree Tooling
 
