@@ -1,8 +1,9 @@
 name: release
 
 # Windows release for this fork. A manual run builds the installers and keeps
-# them as run artifacts; pushing a v* tag also publishes them. The app updates
-# itself from these assets, so the names must stay FlClash-<version>-windows-<arch>-setup.exe
+# them as run artifacts; pushing a v* tag also verifies the changelog and publishes
+# them with its notes. The app updates itself from these assets, so the names must
+# stay FlClash-<version>-windows-<arch>-setup.exe
 # next to a SHA256SUMS file (lib/common/app_update.dart).
 on:
   push:
@@ -80,9 +81,55 @@ jobs:
           name: artifact-windows-${{ matrix.arch }}
           path: ./dist
 
+  notes:
+    name: Release notes
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get Flutter Dependency
+        run: flutter pub get
+
+      - name: Skip the Go core build hook
+        run: yq -i '.hooks.user_defines.setup.build_assets = false' pubspec.yaml
+
+      - name: Verify changelog
+        run: dart run tool/changelog.dart verify
+
+      # The update dialog reads these notes from the release body.
+      - name: Render notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          target=()
+          if [[ "$TAG" == *-* ]]; then
+            dart run tool/changelog.dart build --unreleased
+          else
+            target=(--tag "$TAG")
+          fi
+          dart run tool/changelog.dart render release "${target[@]}" --out release.md
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release.md
+
   publish:
     name: Publish
-    needs: build
+    needs: [ build, notes ]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -91,8 +138,15 @@ jobs:
       - name: Download
         uses: actions/download-artifact@v4
         with:
+          pattern: artifact-*
           path: ./artifacts
           merge-multiple: true
+
+      - name: Download notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: ./notes
 
       - name: Generate sha256
         working-directory: ./artifacts
@@ -106,4 +160,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./artifacts/*
+          body_path: ./notes/release.md
           generate_release_notes: true

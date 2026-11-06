@@ -300,7 +300,7 @@ dart run tool/changelog.dart markdown
 dart run tool/changelog.dart verify
 git commit -am "chore(release): v0.8.96"
 git tag v0.8.96
-git push origin main && git push origin v0.8.96
+git push origin snell-v6 && git push origin v0.8.96
 ```
 
 The tag decides the version, not a commit. A release tag is `vX.Y.Z`, `vX.Y.Z-pre.N`, or `vX.Y.Z-pre.N+M`, where `+M`
@@ -346,8 +346,8 @@ omission to the version's range. It also checks the newest version before its ta
 checked before it is tagged. `release` and `build` keep every stable version `changelog.json` already records as
 written and derive only the new one, so an edit outlives later releases.
 
-Entries at or below `v0.8.96` are frozen: they predate the pipeline, live under the `<!-- changelog:frozen -->` marker
-in `CHANGELOG.md`, and are never regenerated.
+Entries at or below `v0.9.3` are frozen: this repository has no earlier tags to derive them from, so they live under
+the `<!-- changelog:frozen -->` marker in `CHANGELOG.md` and are never regenerated.
 
 `verify` compares a version only when its tag is reachable from `HEAD`, because that is the same scope the builder walks
 (`git tag --merged`). A branch cut before the newest release cannot derive that version at all, so `verify` names it as
@@ -447,7 +447,7 @@ bash tool/hooks/test.sh
 flutter pub get
 dart format --output=none --set-exit-if-changed lib test tool plugins
 flutter analyze --no-fatal-infos
-dart run tool/changelog.dart verify   # main and tags only
+dart run tool/changelog.dart verify   # default branch and tags only
 dart run tool/test.dart -- --reporter expanded --coverage
 dart run tool/check_coverage.dart coverage/lcov.info 75
 ```
