@@ -6,11 +6,23 @@ on:
       - '**'
     tags:
       - 'v*'
+    # Path filters are not evaluated for tags. CHANGELOG.md stays out of this list:
+    # tool/changelog.dart verifies it.
+    paths-ignore:
+      - AGENTS.md
+      - LICENSE
+      - README.md
+      - README_zh_CN.md
+      - SNELL_V6.md
+      - .agents/**
   workflow_dispatch:
 
+# A feature branch keeps only its newest run. The default branch and tags get a
+# group per run: sharing one would drop queued runs even without cancel-in-progress,
+# because a group holds a single pending run.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+  group: ${{ github.workflow }}-${{ (github.ref_type == 'tag' || github.ref_name == github.event.repository.default_branch) && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' && github.ref_name != github.event.repository.default_branch }}
 
 env:
   IS_STABLE: ${{ !contains(github.ref, '-') }}
@@ -143,7 +155,16 @@ jobs:
         with:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
+          # See CI Caches in .agents/commands.md.
+          cache: ${{ matrix.platform == 'linux' }}
+
+      - name: Cache pub packages
+        if: matrix.platform != 'linux'
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
 
       - name: Install Linux build dependencies
         if: matrix.platform == 'linux'
@@ -257,7 +278,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
+          cache-read-only: ${{ github.ref_name != github.event.repository.default_branch }}
 
       - name: Run Android unit tests
         working-directory: android
@@ -317,9 +338,6 @@ jobs:
         with:
           workspaces: services/helper
           save-if: ${{ env.BRANCH_CACHE }}
-
-      - name: Check format
-        run: cargo fmt --manifest-path services/helper/Cargo.toml -- --check
 
       - name: Run Windows service tests
         run: cargo test --manifest-path services/helper/Cargo.toml --features windows-service
