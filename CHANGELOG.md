@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.4 (2026-11-06)
+
+Internal improvements only.
+
+<!-- changelog:frozen -->
+<!-- Entries below predate the structured pipeline. Their wording is kept as written; only the heading and list style were normalized. -->
+
 ## v0.9.3 (2026-11-04)
 
 **Features**
@@ -7,6 +14,8 @@
 - **connections** Merged requests and connections; quick edit lists (52b975f)
 - **ui** iOS 27 transitions, press and text selection; smoother pages (bb47f2c)
 - **update** Download and install updates in the app (b8f84b3)
+- **snell** Snell v6 support in the core (9f1cab1)
+- **update** Update from this fork's releases; download automatically and install on exit (8b069da)
 - **core** One delay test timeout; VPN crash and startup fixes (2a5a42c)
 
 **Bug Fixes**
@@ -129,9 +138,6 @@
 - **android** Rework the Android VPN service and lifecycle handling (ae29f38)
 - **plugins** Rework the desktop plugins and add the Helper service and Rust bridge (adf715f)
 - **core** Rework the core IPC and process lifecycle (c6eaa0a)
-
-<!-- changelog:frozen -->
-<!-- Entries below predate the structured pipeline. Their wording is kept as written; only the heading and list style were normalized. -->
 
 ## v0.8.96 (2026-08-17)
 
