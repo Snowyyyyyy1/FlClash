@@ -321,7 +321,7 @@ void main() {
 
     testWidgets('an automatic check downloads without asking', (tester) async {
       request.releaseDio.httpClientAdapter = _ReleaseAdapter(
-        sums: '$digest  ./$asset\n',
+        sums: '$digest  $asset\n',
         asset: () => ResponseBody.fromBytes(package, 200),
       );
 
