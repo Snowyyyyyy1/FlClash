@@ -1,0 +1,149 @@
+name: upstream-sync
+
+# Flow and setup: Upstream Sync in .agents/commands.md. SYNC_TOKEN, not GITHUB_TOKEN:
+# its pushes start workflows and may change .github/workflows.
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: [ build ]
+    types: [ completed ]
+    branches: [ upstream-sync ]
+
+concurrency:
+  group: upstream-sync
+
+env:
+  UPSTREAM: https://github.com/chen08209/FlClash.git
+  SYNC_BRANCH: upstream-sync
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  FLUTTER_VERSION: '3.50.0'
+  GIT_AUTHOR_NAME: github-actions[bot]
+  GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+  GIT_COMMITTER_NAME: github-actions[bot]
+  GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  sync:
+    name: Merge the upstream release
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Merge
+        run: |
+          set -euo pipefail
+          # Upstream tags reuse this repository's version numbers on other commits.
+          git fetch --no-tags "$UPSTREAM" '+refs/tags/*:refs/upstream-tags/*'
+          tag="$(git for-each-ref refs/upstream-tags --format='%(refname:strip=2)' |
+            grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)"
+          upstream="refs/upstream-tags/$tag"
+          if git merge-base --is-ancestor "$upstream" HEAD; then
+            echo "$DEFAULT_BRANCH already holds upstream $tag"
+            exit 0
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == schedule ]] &&
+            git fetch -q origin "$SYNC_BRANCH" 2>/dev/null &&
+            git merge-base --is-ancestor HEAD FETCH_HEAD &&
+            git merge-base --is-ancestor "$upstream" FETCH_HEAD; then
+            echo "$SYNC_BRANCH already holds upstream $tag; its build decides"
+            exit 0
+          fi
+
+          git merge --no-ff --no-commit "$upstream" || true
+          git rev-parse -q --verify MERGE_HEAD >/dev/null || {
+            echo "::error::git could not start the merge of upstream $tag"
+            exit 1
+          }
+          # The changelog lists this repository's releases only.
+          git checkout HEAD -- CHANGELOG.md changelog.json
+          if git diff --name-only --diff-filter=U | grep -qx pubspec.yaml; then
+            version="$(git show HEAD:pubspec.yaml | sed -n 's/^version: //p')"
+            git checkout --theirs pubspec.yaml
+            sed -i "s/^version: .*/version: $version/" pubspec.yaml
+            git add pubspec.yaml
+          fi
+          conflicts="$(git diff --name-only --diff-filter=U)"
+          if [[ -n "$conflicts" ]]; then
+            echo "::error::upstream $tag conflicts in: ${conflicts//$'\n'/ }; merge it by hand"
+            exit 1
+          fi
+          git commit --no-edit -m "merge: upstream $tag"
+          git push --force origin "HEAD:refs/heads/$SYNC_BRANCH"
+
+  release:
+    name: Release the tested merge
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN }}
+
+      - name: Fast-forward to the tested merge
+        id: merge
+        env:
+          TESTED: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$SYNC_BRANCH"
+          if [[ "$(git rev-parse FETCH_HEAD)" != "$TESTED" ]]; then
+            echo "$SYNC_BRANCH moved past $TESTED; the newer build decides"
+            exit 0
+          fi
+          git merge --ff-only "$TESTED" || {
+            echo "::error::$DEFAULT_BRANCH moved after the sync; the next sync merges again"
+            exit 1
+          }
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          # flutter pub get needs this path package; the Go core is not built here.
+          git submodule update --init plugins/prism_ui
+
+          upstream="$(git log -1 --merges --format=%s --grep='^merge: upstream v' |
+            sed -n 's/^merge: upstream v//p')"
+          last="$(git tag --merged HEAD --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+            sort -V | tail -1)"
+          IFS=. read -r major minor patch <<<"${last#v}"
+          # The app updates only to a higher number, so never go below the last release.
+          version="$(printf '%s\n%s\n' "$upstream" "$major.$minor.$((patch + 1))" | sort -V | tail -1)"
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "releasing v$version: upstream v$upstream, last release $last"
+
+      - name: Setup Flutter
+        if: steps.merge.outputs.version
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Tag the release
+        if: steps.merge.outputs.version
+        env:
+          VERSION: ${{ steps.merge.outputs.version }}
+        run: |
+          set -euo pipefail
+          flutter pub get
+          yq -i '.hooks.user_defines.setup.build_assets = false' pubspec.yaml
+          dart run tool/changelog.dart release --version "$VERSION"
+          dart run tool/changelog.dart verify
+          git checkout -- pubspec.yaml
+          sed -i "s/^version: [0-9]*\.[0-9]*\.[0-9]*/version: $VERSION/" pubspec.yaml
+          git add CHANGELOG.md changelog.json pubspec.yaml
+          git commit -m "chore(release): v$VERSION"
+          git tag "v$VERSION"
+          git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
+          git push origin "v$VERSION"

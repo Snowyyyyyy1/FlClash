@@ -7,6 +7,7 @@ The fork adds only:
 
 - In-app updates from this repository's releases, with automatic download and install on exit or when idle (Windows).
 - `.github/workflows/release.yaml`, which builds and publishes the Windows installers on a `v*` tag.
+- `.github/workflows/upstream-sync.yaml`, which merges each upstream stable release, tests it and tags the next release (see Upstream Sync in `.agents/commands.md`).
 
 ```yaml
 proxies:

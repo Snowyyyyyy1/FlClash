@@ -359,6 +359,33 @@ version from `pubspec.yaml`, which the upload job has already set from the tag, 
 `v<that version>` is tagged, so a prerelease tag must name the next, untagged `X.Y.Z`. The changelog builder walks
 stable tags only and ignores a `+M` tag.
 
+### Upstream Sync
+
+`.github/workflows/upstream-sync.yaml` follows the stable releases of chen08209/FlClash with nobody in the loop. It
+tracks upstream `vX.Y.Z` tags, not upstream `main`, because the app installs every release of this repository
+unattended.
+
+1. The `sync` job runs daily, or by hand. It merges the newest upstream `vX.Y.Z` tag into the default branch and
+   force-pushes the result to the `upstream-sync` branch. `CHANGELOG.md` and `changelog.json` always keep this
+   repository's side. A conflict in `pubspec.yaml` takes upstream's file with this repository's version line. A
+   conflict in any other file fails the run; merge that release by hand.
+2. `build.yaml` tests the push to `upstream-sync`.
+3. When that build passes, the `release` job fast-forwards the default branch to the tested merge. It writes the
+   changelog with `release --version`, commits `chore(release): vX.Y.Z` and pushes the tag. `release.yaml` then
+   publishes the Windows installers.
+
+The version is the higher of the upstream version and the last release of this repository plus one patch, because
+`compareVersions` installs only a higher number. Upstream tags reuse this repository's version numbers on other
+commits, so the job fetches them under `refs/upstream-tags/` and never pushes them.
+
+Setup, once: create a fine-grained token for this repository only, with Contents and Workflows read and write, and
+store it as the `SYNC_TOKEN` secret. `GITHUB_TOKEN` is not enough: its pushes start no workflow, and it may not push a
+merge that changes `.github/workflows`.
+
+A failed run stops the chain, and GitHub mails the failure to the token's owner. A scheduled run does not push a merge
+that `upstream-sync` already holds again; start `sync` by hand after fixing the cause. GitHub turns schedules off after
+60 days without commits to this repository; turn the workflow back on in the Actions tab.
+
 ### Release File Names
 
 The site, the release notes, the Homebrew cask and the in-app updater each find a release's files by name, so a change
