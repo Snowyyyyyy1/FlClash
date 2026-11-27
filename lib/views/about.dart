@@ -101,6 +101,19 @@ class AboutView extends ConsumerWidget {
                     .read(appSettingProvider.notifier)
                     .update((state) => state.copyWith(autoCheckUpdate: value)),
               ),
+              ConfigOptionsItem<UpdateChannel>(
+                leading: const _GlyphBadge(glyph: AppGlyphs.updateChannel),
+                minHeight: badgeRowHeight,
+                title: (l) => l.updateChannel,
+                options: UpdateChannel.values,
+                textBuilder: (channel) => channel.label,
+                selector: appSettingProvider.select(
+                  (state) => state.updateChannel,
+                ),
+                onChanged: (ref, value) => ref
+                    .read(appSettingProvider.notifier)
+                    .update((state) => state.copyWith(updateChannel: value)),
+              ),
               ConfigToggleItem(
                 leading: const _GlyphBadge(glyph: AppGlyphs.cloudDownload),
                 minHeight: badgeRowHeight,
@@ -128,19 +141,6 @@ class AboutView extends ConsumerWidget {
                         (state) => state.copyWith(autoRestartUpdate: value),
                       ),
                 ),
-              ConfigOptionsItem<UpdateChannel>(
-                leading: const _GlyphBadge(glyph: AppGlyphs.updateChannel),
-                minHeight: badgeRowHeight,
-                title: (l) => l.updateChannel,
-                options: UpdateChannel.values,
-                textBuilder: (channel) => channel.label,
-                selector: appSettingProvider.select(
-                  (state) => state.updateChannel,
-                ),
-                onChanged: (ref, value) => ref
-                    .read(appSettingProvider.notifier)
-                    .update((state) => state.copyWith(updateChannel: value)),
-              ),
             ],
           ),
           generateSection(

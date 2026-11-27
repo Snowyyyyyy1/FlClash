@@ -301,6 +301,10 @@ void main() {
     );
     expect(
       tester.getRect(find.text(l10n.updateChannel)).bottom,
+      lessThan(tester.getRect(find.text(l10n.autoDownloadUpdate)).top),
+    );
+    expect(
+      tester.getRect(find.text(l10n.autoDownloadUpdate)).bottom,
       lessThan(tester.getRect(find.widgetWithText(ListHeader, l10n.more)).top),
     );
     expect(find.byGlyph(AppGlyphs.autoCheckUpdate), findsOneWidget);
@@ -308,10 +312,13 @@ void main() {
     final titleStart = tester.getRect(find.text(l10n.project)).left;
     expect(tester.getRect(find.text(l10n.autoCheckUpdate)).left, titleStart);
     expect(tester.getRect(find.text(l10n.updateChannel)).left, titleStart);
+    expect(tester.getRect(find.text(l10n.autoDownloadUpdate)).left, titleStart);
     final linkRowHeight = tester
         .getSize(find.widgetWithText(ListItem, l10n.project))
         .height;
-    expect(tester.getSize(find.byType(ConfigToggleItem)).height, linkRowHeight);
+    for (final toggle in find.byType(ConfigToggleItem).evaluate()) {
+      expect(toggle.size!.height, linkRowHeight);
+    }
     expect(
       tester.getSize(find.byType(ConfigOptionsItem<UpdateChannel>)).height,
       linkRowHeight,
