@@ -103,8 +103,8 @@ jobs:
       - name: Get Flutter Dependency
         run: flutter pub get
 
-      - name: Skip the Go core build hook
-        run: yq -i '.hooks.user_defines.setup.build_assets = false' pubspec.yaml
+      - name: Skip the native build hooks
+        run: yq -i '.hooks.user_defines.setup.build_assets = false | .hooks.user_defines.rust_api.build_assets = false' pubspec.yaml
 
       - name: Verify changelog
         run: dart run tool/changelog.dart verify
