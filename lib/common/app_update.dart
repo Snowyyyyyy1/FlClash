@@ -4,7 +4,9 @@ import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/macos_update.dart';
 import 'package:fl_clash/common/release_asset.dart';
+import 'package:fl_clash/common/release_version.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart' show Traffic, TrafficExt;
 import 'package:fl_clash/plugins/app.dart';
@@ -37,17 +39,61 @@ final class UpdateReady extends UpdateDownload {
 @visibleForTesting
 SelfUpdateAsset? Function() resolveSelfUpdateAsset = () => selfUpdateAssetFor(
   Abi.current(),
-  windowsInstalled: system.isWindows && isInstalledWindowsBuild,
+  replaceable: system.isWindows
+      ? isInstalledWindowsBuild
+      : macosAppUpdate?.canReplace ?? false,
 );
+
+final MacosAppUpdate? macosAppUpdate = switch (system.isMacOS
+    ? appBundleOf(Platform.resolvedExecutable)
+    : null) {
+  final bundle? => MacosAppUpdate(bundle),
+  null => null,
+};
+
+Future<String> get macosInstallFailurePath async {
+  return join(await appPath.updateDirPath, 'install-failed');
+}
 
 SelfUpdateAsset? get selfUpdateAsset => resolveSelfUpdateAsset();
 
 @visibleForTesting
 Future<bool> Function(Uri uri) launchReleasePage = launchUrl;
 
-Future<bool> openReleasePage() {
+const appReleaseLine = ReleaseLine.dev;
+
+const _builtReleaseTag = String.fromEnvironment('RELEASE_TAG');
+
+/// A prerelease build carries only `X.Y.Z` as its version name, so the tag
+/// tool/package.dart writes into env.json is what tells it apart.
+ReleaseVersion installedReleaseVersion(
+  String packageVersion, {
+  String builtTag = _builtReleaseTag,
+}) {
+  return ReleaseVersion.tryParse(builtTag) ??
+      ReleaseVersion.tryParse(packageVersion) ??
+      const ReleaseVersion(0, 0, 0);
+}
+
+/// About names a prerelease by its tag, which its version name leaves out.
+String installedVersionLabel(
+  String packageVersion, {
+  String builtTag = _builtReleaseTag,
+}) => ReleaseVersion.tryParse(builtTag)?.toString() ?? 'v$packageVersion';
+
+/// The installed version as the update card sets it beside a tag without its
+/// leading `v`.
+String installedVersionName(
+  String packageVersion, {
+  String builtTag = _builtReleaseTag,
+}) => installedVersionLabel(
+  packageVersion,
+  builtTag: builtTag,
+).replaceFirst(RegExp('^v'), '');
+
+Future<bool> openReleasePage(String tag) {
   return launchReleasePage(
-    Uri.https('github.com', '/$repository/releases/latest'),
+    Uri.https('github.com', '/$repository/releases/tag/$tag'),
   );
 }
 

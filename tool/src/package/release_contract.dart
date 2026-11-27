@@ -73,8 +73,7 @@ List<String> homebrewAssetNames(String cask, String version) {
 
 List<String> updaterAssetNames(String version) {
   final assets = {
-    for (final abi in Abi.values)
-      ?selfUpdateAssetFor(abi, windowsInstalled: true),
+    for (final abi in Abi.values) ?selfUpdateAssetFor(abi, replaceable: true),
   };
   return [
     for (final asset in assets)
@@ -132,8 +131,11 @@ List<String> releaseContractFailures(String root, String directory) {
   final sums = File(p.join(directory, checksums)).readAsStringSync();
   final digests = {for (final entry in entries) entry.name: entry.sha256};
   for (final name in updaterAssetNames(version)) {
-    final listed = releaseChecksum(sums, name);
-    if (digests[name] != null && listed != digests[name]) {
+    if (!present.contains(name)) continue;
+    final digest = digests[name];
+    if (digest == null) {
+      failures.add('in-app updater finds no sha256 for $name in the manifest');
+    } else if (releaseChecksum(sums, name) != digest) {
       failures.add(
         'in-app updater finds no matching sha256 for $name in $checksums',
       );

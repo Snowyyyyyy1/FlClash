@@ -29,9 +29,6 @@ _AppSettingProps _$AppSettingPropsFromJson(
   autoRun: json['autoRun'] as bool? ?? false,
   openLogs: json['openLogs'] as bool? ?? false,
   closeConnections: json['closeConnections'] as bool? ?? true,
-  requestFeed:
-      $enumDecodeNullable(_$RequestFeedEnumMap, json['requestFeed']) ??
-      RequestFeed.live,
   delayTestTimeout:
       (json['delayTestTimeout'] as num?)?.toInt() ?? defaultDelayTestTimeout,
   tabAnimation:
@@ -44,6 +41,9 @@ _AppSettingProps _$AppSettingPropsFromJson(
   autoCheckUpdate: json['autoCheckUpdate'] as bool? ?? true,
   autoDownloadUpdate: json['autoDownloadUpdate'] as bool? ?? true,
   autoRestartUpdate: json['autoRestartUpdate'] as bool? ?? false,
+  updateChannel:
+      $enumDecodeNullable(_$UpdateChannelEnumMap, json['updateChannel']) ??
+      UpdateChannel.stable,
   sidebarExpanded:
       _readSidebarExpanded(json, 'sidebarExpanded') as bool? ?? true,
   acceptedDisclaimerVersion:
@@ -92,11 +92,6 @@ _AppSettingProps _$AppSettingPropsFromJson(
         ),
       ) ??
       const {},
-  recordGroupings:
-      (json['recordGroupings'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as String),
-      ) ??
-      const {},
 );
 
 Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
@@ -112,13 +107,13 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'autoRun': instance.autoRun,
       'openLogs': instance.openLogs,
       'closeConnections': instance.closeConnections,
-      'requestFeed': _$RequestFeedEnumMap[instance.requestFeed]!,
       'delayTestTimeout': instance.delayTestTimeout,
       'tabAnimation': _$TabAnimationEnumMap[instance.tabAnimation]!,
       'floatingNavigationBar': instance.floatingNavigationBar,
       'autoCheckUpdate': instance.autoCheckUpdate,
       'autoDownloadUpdate': instance.autoDownloadUpdate,
       'autoRestartUpdate': instance.autoRestartUpdate,
+      'updateChannel': _$UpdateChannelEnumMap[instance.updateChannel]!,
       'sidebarExpanded': instance.sidebarExpanded,
       'acceptedDisclaimerVersion': instance.acceptedDisclaimerVersion,
       'minimizeOnExit': instance.minimizeOnExit,
@@ -136,17 +131,16 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'serviceOrder': instance.serviceOrder,
       'disabledServices': instance.disabledServices,
       'tableColumnWidths': instance.tableColumnWidths,
-      'recordGroupings': instance.recordGroupings,
     };
-
-const _$RequestFeedEnumMap = {
-  RequestFeed.recent: 'recent',
-  RequestFeed.live: 'live',
-};
 
 const _$TabAnimationEnumMap = {
   TabAnimation.slide: 'slide',
   TabAnimation.fade: 'fade',
+};
+
+const _$UpdateChannelEnumMap = {
+  UpdateChannel.stable: 'stable',
+  UpdateChannel.pre: 'pre',
 };
 
 const _$RestoreStrategyEnumMap = {
